@@ -54,7 +54,7 @@ app.use(hpp());
 app.use('/api/v1/rule-validation', ruleValidationRoutes)
 
 app.use(function(err, req, res, next) {
-    res.status(422).send({error: err._message});
+    res.status(process.env.HTTP_INTERNAL_SERVER_ERROR_STATUS_CODE).send({error: err._message});
 });
 
 // Handle undefined routes
