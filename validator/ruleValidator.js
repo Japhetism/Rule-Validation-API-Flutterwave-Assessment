@@ -27,8 +27,10 @@ exports.validateRequest = req => {
 
     if(error === null) {
         if(ruleValidator.hasDataRuleField(req)) {
-            error = ruleValidator.hasDataRuleField(req)
-        }else if(!ruleValidator.ruleDataValidation(req)) {
+            const value = ruleValidator.hasDataRuleField(req);
+            error = value === undefined ? `field ${req.body.field} is missing from data.` : null
+        }
+        if(!ruleValidator.ruleDataValidation(req)) {
             const { rule: { field } } = req;
             error = `field ${field} failed validation.`;
             showData = true;
@@ -36,13 +38,11 @@ exports.validateRequest = req => {
     }
 
     errorDetails.message = error;
-    errorDetails.hasError = true;
+    errorDetails.hasError = error ? true : false;
     errorDetails.showData = showData;
-
     
     return errorDetails;
-
-
+    
 }
 
 class RuleValidator {
@@ -94,22 +94,31 @@ class RuleValidator {
     }
 
     hasDataRuleField (req) {
-        const { rule: { field }, data } = req;
-        return data[field] === undefined ? `field ${field} is missing from data.` : null
+        let { rule: { field }, data } = req;
+        const fieldArray = field.split(".");
+        let indexes = "";
+        let splittedData = data;
+        for(let i = 0; i < fieldArray.length; i++) {
+            const fieldRule = fieldArray[i]
+            const value = splittedData[fieldRule];
+            splittedData = value
+        }
+        return splittedData
     }
 
     ruleDataValidation (req) {
         const { rule: { field, condition, condition_value }, data } = req;
+        const fieldRuleDataValue = this.hasDataRuleField(req)
         let error = false;
         
         if(condition === "eq") {
-            error =  data[field] === condition_value
+            error =  fieldRuleDataValue === condition_value
         }else if(condition === "neq") {
-            error = data[field] !== condition_value
+            error = fieldRuleDataValue !== condition_value
         }else if(condition === "gt") {
-            error = data[field] > condition_value
+            error = fieldRuleDataValue > condition_value
         }else if(condition === "gte") {
-            error = data[field] >= condition_value
+            error = fieldRuleDataValue >= condition_value
         }else if(condition === "contains") {
             error =  false
         }

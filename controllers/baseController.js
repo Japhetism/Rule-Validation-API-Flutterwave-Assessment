@@ -3,6 +3,7 @@ const APIFeatures = require('../utils/apiFeatures');
 const Author = require('../fixtures/author_info');
 const { check, validationResult } = require('express-validator')
 const RuleValidator = require('../validator/ruleValidator');
+const Helper = require('../utils/helper');
 
 exports.getAuthorRuleValidation = Model => async (req, res, next) => {
     return res.status(process.env.HTTP_OK_STATUS_CODE).json({
@@ -62,7 +63,7 @@ exports.createOne = Model => async (req, res, next) => {
         const validation = {
             error: error.hasError ? error.hasError : false,
             field,
-            field_value: data ? data[field] : null,
+            field_value: Helper.getKeyValue(data, field),
             condition,
             condition_value
         }
