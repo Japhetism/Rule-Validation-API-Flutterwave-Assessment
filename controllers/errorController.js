@@ -4,9 +4,10 @@ module.exports = (err, req, res, next) => {
     err.status = err.status || process.env.ERROR_STATUS
 
     res.status(err.statusCode).json({
-        status: err.status,
-        error: err,
         message: err.message,
-        stack: err.stack
+        status: err.status,
+        data: null,
+        // error: err.errors.rule.message,
+        // stack: err.stack
     })
 }
