@@ -16,14 +16,14 @@ const { Server } = require('mongodb');
 const database = process.env.DATABASEURL
 
 // Connect to the database
-mongoose.connect(database, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false
-}).then(con => {
-    console.log('DB connection successful!');
-});
-mongoose.Promise = global.Promise;
+// mongoose.connect(database, {
+//     useNewUrlParser: true,
+//     useCreateIndex: true,
+//     useFindAndModify: false
+// }).then(con => {
+//     console.log('DB connection successful!');
+// });
+// mongoose.Promise = global.Promise;
 
 // Start the server
 const port = process.env.PORT;

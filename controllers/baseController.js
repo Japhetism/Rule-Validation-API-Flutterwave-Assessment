@@ -1,7 +1,6 @@
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 const Author = require('../fixtures/author_info');
-const { check, validationResult } = require('express-validator')
 const RuleValidator = require('../validator/ruleValidator');
 const Helper = require('../utils/helper');
 
@@ -13,7 +12,7 @@ exports.getAuthorRuleValidation = Model => async (req, res, next) => {
     })
 }
 
-exports.deleteOne = Model => async (req, res, next) => {
+exports.deleteOne = () => async (req, res, next) => {
     try {
         const id = req.params.id;
         const doc = await Model.findByIdAndDelete(id);
@@ -31,7 +30,7 @@ exports.deleteOne = Model => async (req, res, next) => {
     }
 };
 
-exports.updateOne = Model => async (req, res, next) => {
+exports.updateOne = () => async (req, res, next) => {
     try {
         const id = req.params.id;
         const doc = await Model.findByIdAndUpdate(id, req.body, {
@@ -55,7 +54,7 @@ exports.updateOne = Model => async (req, res, next) => {
 };
 
 
-exports.createOne = Model => async (req, res, next) => {
+exports.createOne = () => async (req, res, next) => {
     try {
         const error = RuleValidator.validateRequest(req.body);
         const { rule, data } = req.body || {}
@@ -72,10 +71,8 @@ exports.createOne = Model => async (req, res, next) => {
                 validation
             }
             return next(new AppError(process.env.HTTP_BAD_REQUEST_STATUS_CODE, process.env.ERROR_STATUS, error.message, data), req, res, next);
-            //return res.status(process.env.HTTP_BAD_REQUEST_STATUS_CODE).json({ errors: errors })
         }else if(error.message) {
             return next(new AppError(process.env.HTTP_BAD_REQUEST_STATUS_CODE, process.env.ERROR_STATUS, error.message), req, res, next);
-            //return res.status(process.env.HTTP_BAD_REQUEST_STATUS_CODE).json({ errors: errors })
         }else{
             return res.status(process.env.HTTP_OK_STATUS_CODE).json({
                 message: `field ${field} successfully validated.`,
@@ -90,7 +87,7 @@ exports.createOne = Model => async (req, res, next) => {
     }
 };
 
-exports.getOne = Model => async (req, res, next) => {
+exports.getOne = () => async (req, res, next) => {
     try {
         const id = req.params.id;
         const doc = await Model.findById(id);
@@ -110,7 +107,7 @@ exports.getOne = Model => async (req, res, next) => {
     }
 };
 
-exports.getAll = Model => async (req, res, next) => {
+exports.getAll = () => async (req, res, next) => {
     try {
         const features = new APIFeatures(Model.find(), req.query)
             .sort()
