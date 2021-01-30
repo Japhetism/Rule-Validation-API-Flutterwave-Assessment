@@ -1,28 +1,48 @@
 exports.validateRequest = req => {
     let error = null;
+    let errorDetails = [];
+    let showData = false;
     const requiredRuleFields = ["field", "condition", "condition_value"];
     
     const ruleValidator = new RuleValidator()
 
-    if(!ruleValidator.hasDataField(req)) {
-        error = "data is required.";
-    }else if(!ruleValidator.isArray(req.data) && !ruleValidator.isString(req.data) && !ruleValidator.isObject(req.data)) {
-        error = "data should be either object, array or string";
-    }else if(ruleValidator.isNull(req.data) || ruleValidator.isEmptyArray(req.data) || ruleValidator.isEmptyObject(req.data)) {
-        error = "data should not be empty";
-    }
-
     if(!ruleValidator.hasRuleField(req)) {
         error = "rule is required.";
-    }else if(!ruleValidator.isObject(req.rule)) {
+    }
+    else if(!ruleValidator.isObject(req.rule)) {
         error = "rule should be an object.";
     }else if(ruleValidator.isEmptyObject(req.rule)) {
-        error = "rule should not be empty";
+        error = "rule should not be empty.";
     }else if(ruleValidator.hasRequiredFields(req.rule, 'rule', requiredRuleFields)) {
         error = ruleValidator.hasRequiredFields(req.rule, 'rule', requiredRuleFields);
     }
     
-    return error;
+    if(!ruleValidator.hasDataField(req)) {
+        error = "data is required.";
+    }else if(!ruleValidator.isArray(req.data) && !ruleValidator.isString(req.data) && !ruleValidator.isObject(req.data)) {
+        error = "data should be either object, array or string.";
+    }else if(ruleValidator.isNull(req.data) || ruleValidator.isEmptyArray(req.data) || ruleValidator.isEmptyObject(req.data)) {
+        error = "data should not be empty.";
+    }
+
+    if(error === null) {
+        if(ruleValidator.hasDataRuleField(req)) {
+            error = ruleValidator.hasDataRuleField(req)
+        }else if(!ruleValidator.ruleDataValidation(req)) {
+            const { rule: { field } } = req;
+            error = `field ${field} failed validation.`;
+            showData = true;
+        }
+    }
+
+    errorDetails.message = error;
+    errorDetails.hasError = true;
+    errorDetails.showData = showData;
+
+    
+    return errorDetails;
+
+
 }
 
 class RuleValidator {
@@ -42,8 +62,6 @@ class RuleValidator {
     }
 
     isArray (req) {
-        console.log(req)
-        console.log(req instanceof Array)
         return req instanceof Array;
     }
 
@@ -68,11 +86,34 @@ class RuleValidator {
         for(let i = 0; i < requiredFields.length; i++) {
             const field = requiredFields[i]
             if (!req.hasOwnProperty(field)) { 
-                error = `${field} is missing from ${reqType}`
+                error = `${field} is missing from ${reqType}.`
             }
         }
         return error;
         
+    }
+
+    hasDataRuleField (req) {
+        const { rule: { field }, data } = req;
+        return data[field] === undefined ? `field ${field} is missing from data.` : null
+    }
+
+    ruleDataValidation (req) {
+        const { rule: { field, condition, condition_value }, data } = req;
+        let error = false;
+        
+        if(condition === "eq") {
+            error =  data[field] === condition_value
+        }else if(condition === "neq") {
+            error = data[field] !== condition_value
+        }else if(condition === "gt") {
+            error = data[field] > condition_value
+        }else if(condition === "gte") {
+            error = data[field] >= condition_value
+        }else if(condition === "contains") {
+            error =  false
+        }
+        return error
     }
 
 }

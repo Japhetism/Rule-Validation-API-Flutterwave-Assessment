@@ -56,43 +56,37 @@ exports.updateOne = Model => async (req, res, next) => {
 
 exports.createOne = Model => async (req, res, next) => {
     try {
-        console.log(RuleValidator.validateRequest(req.body));
-        const errors = RuleValidator.validateRequest(req.body);
-        if(errors) {
-            return next(new AppError(process.env.HTTP_BAD_REQUEST_STATUS_CODE, process.env.ERROR_STATUS, errors), req, res, next);
+        const error = RuleValidator.validateRequest(req.body);
+        const { rule, data } = req.body || {}
+        const { field, condition, condition_value } = rule || {}
+        const validation = {
+            error: error.hasError ? error.hasError : false,
+            field,
+            field_value: data ? data[field] : null,
+            condition,
+            condition_value
+        }
+        if(error.message && error.showData) {
+            const data = {
+                validation
+            }
+            return next(new AppError(process.env.HTTP_BAD_REQUEST_STATUS_CODE, process.env.ERROR_STATUS, error.message, data), req, res, next);
+            //return res.status(process.env.HTTP_BAD_REQUEST_STATUS_CODE).json({ errors: errors })
+        }else if(error.message) {
+            return next(new AppError(process.env.HTTP_BAD_REQUEST_STATUS_CODE, process.env.ERROR_STATUS, error.message), req, res, next);
             //return res.status(process.env.HTTP_BAD_REQUEST_STATUS_CODE).json({ errors: errors })
         }else{
-            return res.status(process.env.HTTP_OK_STATUS_CODE).json(req.body);
+            return res.status(process.env.HTTP_OK_STATUS_CODE).json({
+                message: `field ${field} successfully validated.`,
+                status: process.env.SUCCESS_STATUS,
+                data: {
+                    validation: validation
+                }
+            });
         }
     } catch (error) {
         next(error)
     }
-    // console.log(RuleValidator.validateRequest(req.body));
-    // const errors = RuleValidator.validateRequest(req.body);
-    // if(errors.length) {
-    //     return res.status(process.env.HTTP_BAD_REQUEST_STATUS_CODE).json({ errors: errors })
-    // }else{
-    //     return res.status(process.env.HTTP_OK_STATUS_CODE).json(req.body);
-    // }
-    //check('data').isEmail();
-    // const errors = validationResult(req)
-    // if (!errors.isEmpty()) {
-    //   return res.status(422).json({ errors: errors.array() })
-    // }else{
-    //     return res.status(400).json(req.body);
-    // }
-    // try {
-    //     const doc = await Model.create(req.body);
-
-    //     return res.status(process.env.HTTP_CREATED_STATUS_CODE).json({
-    //         message: "Rule validation created successfully.",
-    //         status: process.env.SUCCESS_STATUS,
-    //         data: doc
-    //     });
-    // } catch (error) {
-    //     console.log(error);
-    //     next(error);
-    // }
 };
 
 exports.getOne = Model => async (req, res, next) => {
