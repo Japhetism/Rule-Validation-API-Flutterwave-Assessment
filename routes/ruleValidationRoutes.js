@@ -7,7 +7,7 @@ router
     .get(ruleValidationController.getAuthorRuleValidation);
 
 router
-    .route('/')
+    .route('/validate-rule')
     .post(ruleValidationController.createRuleValidation);
 
 module.exports = router;
