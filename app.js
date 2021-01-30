@@ -51,13 +51,13 @@ app.use(xss());
 app.use(hpp());
 
 // Routes
-app.use('/api/v1/rule-validation', ruleValidationRoutes)
+app.use('/', ruleValidationRoutes)
 
-app.use(function(err, req, res, next) {
-    res.status(process.env.HTTP_INTERNAL_SERVER_ERROR_STATUS_CODE).send({error: err._message});
-});
+// app.use(function(err, req, res, next) {
+//     res.status(process.env.HTTP_INTERNAL_SERVER_ERROR_STATUS_CODE).send({error: err._message});
+// });
 
-// Handle undefined routes
+// Handle unexisting routes
 app.use('*', (req, res, next) => {
     const err = new AppError(process.env.HTTP_NOT_FOUND_STATUS_CODE, process.env.ERROR_STATUS, 'This route does not exist');
     next(err, req, res, next);

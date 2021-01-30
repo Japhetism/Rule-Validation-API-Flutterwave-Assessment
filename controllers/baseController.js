@@ -1,7 +1,8 @@
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 const Author = require('../fixtures/author_info');
-
+const RuleValidator = require('../validator/ruleValidator');
+const Helper = require('../utils/helper');
 
 exports.getAuthorRuleValidation = Model => async (req, res, next) => {
     return res.status(process.env.HTTP_OK_STATUS_CODE).json({
@@ -11,7 +12,7 @@ exports.getAuthorRuleValidation = Model => async (req, res, next) => {
     })
 }
 
-exports.deleteOne = Model => async (req, res, next) => {
+exports.deleteOne = () => async (req, res, next) => {
     try {
         const id = req.params.id;
         const doc = await Model.findByIdAndDelete(id);
@@ -29,7 +30,7 @@ exports.deleteOne = Model => async (req, res, next) => {
     }
 };
 
-exports.updateOne = Model => async (req, res, next) => {
+exports.updateOne = () => async (req, res, next) => {
     try {
         const id = req.params.id;
         const doc = await Model.findByIdAndUpdate(id, req.body, {
@@ -38,7 +39,7 @@ exports.updateOne = Model => async (req, res, next) => {
         });
         
         if(!doc) {
-            return next(new AppError(process.env.HTTP_NOT_FOUND_STATUS_CODE, process.env.ERROR_STATUS, `No document found with this id ${id}`), rq, res, next);
+            return next(new AppError(process.env.HTTP_NOT_FOUND_STATUS_CODE, process.env.ERROR_STATUS, `No document found with this id ${id}`), req, res, next);
         }
 
         res.status(200).json({
@@ -53,22 +54,40 @@ exports.updateOne = Model => async (req, res, next) => {
 };
 
 
-exports.createOne = Model => async (req, res, next) => {
+exports.createOne = () => async (req, res, next) => {
     try {
-        const doc = await Model.create(req.body);
-
-        res.status(200).json({
-            status: process.env.SUCCESS_STATUS,
-            data: {
-                doc
+        const error = RuleValidator.validateRequest(req.body);
+        const { rule, data } = req.body || {}
+        const { field, condition, condition_value } = rule || {}
+        const validation = {
+            error: error.hasError ? error.hasError : false,
+            field,
+            field_value: Helper.getKeyValue(data, field),
+            condition,
+            condition_value
+        }
+        if(error.message && error.showData) {
+            const data = {
+                validation
             }
-        });
+            return next(new AppError(process.env.HTTP_BAD_REQUEST_STATUS_CODE, process.env.ERROR_STATUS, error.message, data), req, res, next);
+        }else if(error.message) {
+            return next(new AppError(process.env.HTTP_BAD_REQUEST_STATUS_CODE, process.env.ERROR_STATUS, error.message), req, res, next);
+        }else{
+            return res.status(process.env.HTTP_OK_STATUS_CODE).json({
+                message: `field ${field} successfully validated.`,
+                status: process.env.SUCCESS_STATUS,
+                data: {
+                    validation: validation
+                }
+            });
+        }
     } catch (error) {
-        next(error);
+        next(error)
     }
 };
 
-exports.getOne = Model => async (req, res, next) => {
+exports.getOne = () => async (req, res, next) => {
     try {
         const id = req.params.id;
         const doc = await Model.findById(id);
@@ -88,7 +107,7 @@ exports.getOne = Model => async (req, res, next) => {
     }
 };
 
-exports.getAll = Model => async (req, res, next) => {
+exports.getAll = () => async (req, res, next) => {
     try {
         const features = new APIFeatures(Model.find(), req.query)
             .sort()
