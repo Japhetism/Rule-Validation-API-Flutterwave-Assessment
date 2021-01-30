@@ -51,7 +51,7 @@ app.use(xss());
 app.use(hpp());
 
 // Routes
-app.use('/api/v1', ruleValidationRoutes)
+app.use('/', ruleValidationRoutes)
 
 // app.use(function(err, req, res, next) {
 //     res.status(process.env.HTTP_INTERNAL_SERVER_ERROR_STATUS_CODE).send({error: err._message});

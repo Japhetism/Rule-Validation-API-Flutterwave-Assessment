@@ -6,13 +6,17 @@ exports.getKeyValue = (object, key) => {
 class Helper {
     
     hasKeyValue (object, key) {
-        const keysArray = key.split(".");
-        let splittedObject = object;
-        for(let i = 0; i < keysArray.length; i++) {
-            const value = keysArray[i]
-            splittedObject = splittedObject[value];
+        
+        if(object && key) {
+            const keysArray = key.split(".");
+            let splittedObject = object;
+            for(let i = 0; i < keysArray.length; i++) {
+                const value = keysArray[i]
+                splittedObject = splittedObject[value];
+            }
+            return splittedObject
         }
-        return splittedObject
+        return null
     }
 
 }
